@@ -1,0 +1,11 @@
+import 'package:aqarat_app/core/errors/exceptions.dart';
+import 'package:aqarat_app/features/properties/domain/repositories/property_repository.dart';
+import 'package:aqarat_app/features/properties/presentation/bloc/property_event.dart';
+import 'package:aqarat_app/features/properties/presentation/bloc/property_state.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+export 'property_event.dart'; export 'property_state.dart';
+class PropertyBloc extends Bloc<PropertyEvent, PropertyState> { PropertyBloc(this._repository) : super(const PropertyState()) { on<PropertiesRequested>(_load); on<NextPropertiesRequested>(_next); on<PropertyDetailsRequested>(_details); } final PropertyRepository _repository;
+  Future<void> _load(PropertiesRequested event, Emitter<PropertyState> emit) async { emit(state.copyWith(status: PropertyStatus.loading)); try { final results = await _repository.search(filters: event.filters); final regions = state.regions.isEmpty ? await _repository.regions() : state.regions; emit(PropertyState(status: PropertyStatus.success, properties: results.properties, regions: regions, filters: event.filters ?? const {}, page: results.page, hasMore: results.hasMore)); } on ApiException catch (e) { emit(state.copyWith(status: PropertyStatus.failure, error: e.message)); } }
+  Future<void> _next(NextPropertiesRequested event, Emitter<PropertyState> emit) async { if (!state.hasMore || state.status == PropertyStatus.loading) return; try { final results = await _repository.search(filters: state.filters, page: state.page + 1); emit(state.copyWith(status: PropertyStatus.success, properties: [...state.properties, ...results.properties], page: results.page, hasMore: results.hasMore)); } on ApiException catch (e) { emit(state.copyWith(status: PropertyStatus.failure, error: e.message)); } }
+  Future<void> _details(PropertyDetailsRequested event, Emitter<PropertyState> emit) async { emit(state.copyWith(isDetailLoading: true, detailError: null)); try { final property = await _repository.details(event.id); await _repository.recordView(event.id); emit(state.copyWith(selectedProperty: property, isDetailLoading: false)); } on ApiException catch (e) { emit(state.copyWith(isDetailLoading: false, detailError: e.message)); } }
+}

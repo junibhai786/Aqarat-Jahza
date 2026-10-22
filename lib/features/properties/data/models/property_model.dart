@@ -1,0 +1,51 @@
+import 'package:aqarat_app/features/properties/domain/entities/property.dart';
+
+class PropertyModel extends Property {
+  const PropertyModel({
+    required super.id,
+    required super.title,
+    required super.price,
+    required super.priceUnit,
+    required super.region,
+    required super.address,
+    required super.kind,
+    required super.type,
+    required super.listingStatus,
+    required super.badge,
+    required super.isVerified,
+    required super.area,
+    required super.rooms,
+    required super.baths,
+    required super.floorName,
+    required super.finishType,
+    required super.images,
+    required super.description,
+    required super.whatsapp,
+    required super.officeName,
+    required super.views,
+  });
+
+  factory PropertyModel.fromJson(Map<String, dynamic> json) => PropertyModel(
+        id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+        title: json['title']?.toString() ?? 'Untitled property',
+        price: num.tryParse(json['price']?.toString() ?? '') ?? 0,
+        priceUnit: json['price_unit']?.toString() ?? '',
+        region: json['region']?.toString() ?? '',
+        address: json['address']?.toString() ?? '',
+        kind: json['property_kind']?.toString() ?? json['kind']?.toString() ?? '',
+        type: json['property_type']?.toString() ?? json['type']?.toString() ?? '',
+        listingStatus: json['listing_status']?.toString() ?? '',
+        badge: json['badge']?.toString() ?? '',
+        isVerified: json['is_verified'] == true || json['is_verified']?.toString() == '1',
+        area: num.tryParse(json['area']?.toString() ?? ''),
+        rooms: int.tryParse(json['rooms']?.toString() ?? ''),
+        baths: int.tryParse(json['baths']?.toString() ?? ''),
+        floorName: json['floor_name']?.toString() ?? '',
+        finishType: json['finish_type']?.toString() ?? '',
+        images: (json['images'] as List? ?? []).map((item) => item.toString()).toList(),
+        description: json['description']?.toString() ?? '',
+        whatsapp: json['whatsapp']?.toString() ?? '',
+        officeName: json['office_name']?.toString() ?? '',
+        views: int.tryParse(json['views']?.toString() ?? '') ?? 0,
+      );
+}
