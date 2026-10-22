@@ -2,7 +2,7 @@ class ApiEndpoints {
   const ApiEndpoints._();
 
   //static const String baseUrl = 'http://192.168.18.66:3000/api/mobile';
-  static const String baseUrl = 'https://aqaratjahza.com';
+  static const String baseUrl = 'https://aqaratjahza.com/api/mobile';
 
   // Authentication
   static const String login = '/auth/login';
