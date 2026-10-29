@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:aqarat_app/core/errors/exceptions.dart';
 import 'package:aqarat_app/features/seller/domain/repositories/seller_repository.dart';
-import 'package:aqarat_app/features/seller/presentation/pages/seller_activity_pages.dart';
 import 'package:aqarat_app/features/properties/data/models/property_model.dart';
 import 'package:aqarat_app/features/properties/presentation/pages/property_details_page.dart';
 import 'package:flutter/material.dart';

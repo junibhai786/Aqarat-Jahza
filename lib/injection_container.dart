@@ -12,6 +12,9 @@ import 'package:aqarat_app/features/buyer/domain/repositories/buyer_repository.d
 import 'package:aqarat_app/features/properties/data/datasources/property_remote_datasource.dart';
 import 'package:aqarat_app/features/properties/data/repositories/property_repository_impl.dart';
 import 'package:aqarat_app/features/properties/presentation/bloc/property_bloc.dart';
+import 'package:aqarat_app/features/seller/data/datasources/seller_remote_datasource.dart';
+import 'package:aqarat_app/features/seller/data/repositories/seller_repository_impl.dart';
+import 'package:aqarat_app/features/seller/domain/repositories/seller_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class InjectionContainer {
@@ -31,5 +34,10 @@ class InjectionContainer {
   static Future<BuyerRepository> buyerRepository() async {
     final preferences = await SharedPreferences.getInstance();
     return BuyerRepositoryImpl(BuyerRemoteDataSource(DioClient(preferences)));
+  }
+
+  static Future<SellerRepository> sellerRepository() async {
+    final preferences = await SharedPreferences.getInstance();
+    return SellerRepositoryImpl(SellerRemoteDataSource(DioClient(preferences)));
   }
 }

@@ -7,6 +7,8 @@ import 'package:aqarat_app/features/buyer/presentation/pages/buyer_dashboard_pag
 import 'package:aqarat_app/features/buyer/presentation/pages/profile_page.dart';
 import 'package:aqarat_app/features/buyer/presentation/pages/leads_page.dart';
 import 'package:aqarat_app/features/buyer/presentation/pages/bookings_page.dart';
+import 'package:aqarat_app/features/seller/presentation/pages/seller_workspace_page.dart';
+import 'package:aqarat_app/features/seller/presentation/pages/seller_activity_pages.dart';
 import 'package:aqarat_app/injection_container.dart';
 import 'package:aqarat_app/features/properties/domain/entities/property.dart';
 import 'package:aqarat_app/features/properties/presentation/bloc/property_bloc.dart';
@@ -69,6 +71,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   bool get _isBuyer => context.read<AuthBloc>().state.user?.role == 'buyer';
+  bool get _isSeller => context.read<AuthBloc>().state.user?.role == 'seller';
 
   Future<void> _loadBuyerOverview() async {
     if (!_isBuyer) return;
@@ -325,6 +328,25 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _openSellerWorkspace() async {
+    if (!_isSeller) return;
+    final repository = await InjectionContainer.sellerRepository();
+    if (!mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => SellerWorkspacePage(
+        repository: repository,
+        name: context.read<AuthBloc>().state.user?.fullName ?? '',
+      ),
+    ));
+  }
+
+  Future<T?> _openSellerPage<T>(Widget Function(dynamic repository) page) async {
+    if (!_isSeller) return null;
+    final repository = await InjectionContainer.sellerRepository();
+    if (!mounted) return null;
+    return Navigator.of(context).push<T>(MaterialPageRoute<T>(builder: (_) => page(repository)));
+  }
+
   void _selectCategory(String label, {String? type, String? kind}) {
     setState(() {
       final isSelected = _selectedCategory == label;
@@ -553,12 +575,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _openProfile() async {
-    if (!_isBuyer) return;
-    final repository = await InjectionContainer.buyerRepository();
+    if (!_isBuyer && !_isSeller) return;
     if (!mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => ProfilePage(repository: repository)),
-    );
+    if (_isBuyer) {
+      final repository = await InjectionContainer.buyerRepository();
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ProfilePage(repository: repository)));
+    } else {
+      final repository = await InjectionContainer.sellerRepository();
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => SellerAccountPage(repository: repository)));
+    }
   }
 
   Future<void> _deleteAccountDialog() async {
@@ -619,7 +646,20 @@ class _HomePageState extends State<HomePage> {
             Navigator.pop(context);
             await _openLeads();
           }),
-        _drawerItem(Icons.notifications_none, context.tr('notifications'), false, () => _comingSoon(context.tr('notifications'))),
+        if (_isSeller) ...[
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 24), child: Text('YOUR PROPERTY WORKSPACE', style: TextStyle(fontSize: 10, letterSpacing: 1.1, color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold))),
+          const SizedBox(height: 8),
+          _drawerItem(Icons.grid_view_rounded, 'Dashboard', false, () async { Navigator.pop(context); await _openSellerWorkspace(); }),
+          _drawerItem(Icons.apartment_outlined, 'Properties', false, () async { Navigator.pop(context); await _openSellerPage((repository) => SellerListingsPage(repository: repository)); }),
+          Padding(padding: const EdgeInsets.fromLTRB(16, 5, 16, 10), child: SizedBox(width: double.infinity, height: 46, child: FilledButton.icon(onPressed: () async { Navigator.pop(context); await _openSellerPage((repository) => SellerListingFormPage(repository: repository)); }, icon: const Icon(Icons.add), label: const Text('Add a property')))),
+          _drawerItem(Icons.calendar_month_outlined, 'Viewings', false, () async { Navigator.pop(context); await _openSellerPage((repository) => SellerBookingsPage(repository: repository)); }),
+          _drawerItem(Icons.chat_bubble_outline, 'Property requests', false, () async { Navigator.pop(context); await _openSellerPage((repository) => SellerLeadsPage(repository: repository)); }),
+          _drawerItem(Icons.show_chart_outlined, 'Reports', false, () => _comingSoon('Reports')),
+          _drawerItem(Icons.notifications_none, 'Notifications', false, () async { Navigator.pop(context); await _openSellerPage((repository) => SellerNotificationsPage(repository: repository)); }),
+          _drawerItem(Icons.settings_outlined, 'Account settings', false, _openProfile),
+        ],
+        if (_isBuyer)
+          _drawerItem(Icons.notifications_none, context.tr('notifications'), false, () => _comingSoon(context.tr('notifications'))),
         const SizedBox(height: 24),
         Container(margin: const EdgeInsets.symmetric(horizontal: 20), padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFFF5F8F3), borderRadius: BorderRadius.circular(12)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Icon(Icons.forum_outlined, color: Color(0xFF007A61)), const SizedBox(height: 10), Text(context.tr('supportTitle'), style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 6), Text(context.tr('supportSubtitle'), style: const TextStyle(fontSize: 12, color: Colors.black54)), const SizedBox(height: 12), Text('${context.tr('contactSupport')}  ←', style: const TextStyle(fontSize: 12, color: Color(0xFF007A61), fontWeight: FontWeight.bold))])),
         const Spacer(),
